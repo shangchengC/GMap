@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+    <title>Hochladen</title>
+    <link rel="stylesheet" href="css/board.css">
+    <script type="text/javascript" src='https://cdn.jsdelivr.net/npm/xlsx@0.16.6/dist/xlsx.full.min.js'></script>
+    <script
+            src="//maps.googleapis.com/maps/api/js?key=AIzaSyDJW4jsPlNKgv6jFm3B5Edp5ywgdqLWdmc&sensor=false">
+    </script>
+    <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            $("knotennummer_list").click(function(){
+                alert( )
+            });
+        });
+    </script>
+
+
+</head>
+
+<body>
+Hochladen：<br>
+<input type="file" id="file"/><br>
+
+
+
+<!--<button type="button" id="Knotennummer2" onclick="knotennummer()"/>Knotennummer</button>-->
+<!-- <input type="text" id="Knotennummer"/>
+<button type="button" onclick="stimmt()"> stimmt </button> -->
+<div class="content">
+
+    <div class="content-left">
+
+        <div   id="knotennummer_list"></div>
+    </div>
+    <div class="content-right">
+         <div id="googleMap" style="width:1000px;height:760px;"></div>
+    </div>
+</div>
+<script>
+    var myCenter;
+    const sheetArray = [];
+    var iconBase = 'https://maps.google.com/mapfiles/kml/shapes/';
+    var positions = [];
+
+    var selectedPosition;
+    var deletedPostion;
+    var temp = null;
+    // function knotennummer() {
+    //     for (let i = 1; i <= sheetArray.length -1; i++) {
+    //             console.log(target_Knote.Knotennummer);
+    //
+    //     }
+    // }
+
+
+    // function stimmt(){
+    //     var stimmt = document.getElementById("Knotennummer").value;
+    //     console.log(stimmt)
+
+    //     for (let i = 1; i <= sheetArray.length -1; i++) {
+    //         // console.log(Knotennummer)
+    //     //   console.log(sheetArray[i].Knotennummer)
+
+
+    //         if(stimmt == sheetArray[i].Knotennummer) {
+    //             target_Knote = sheetArray[i];
+    //             console.log(target_Knote.Dx);
+    //             console.log(target_Knote.Dy);
+    //         }
+    //     }
+    //     myCenter=new google.maps.LatLng(target_Knote.Dx,target_Knote.Dy);
+    //     // google.maps.event.addDomListener(window, 'load', initialize);
+    //     initialize();
+    // }
+
+
+    function initialize()
+    {
+
+        var mapProp = {
+            center:new google.maps.LatLng(48.13743, 11.57549),
+            zoom:12,
+            mapTypeId:google.maps.MapTypeId.ROADMAP
+        };
+        var map=new google.maps.Map(document.getElementById("googleMap"),mapProp);
+        for(let i = 0 ; i < positions.length; i++) {
+            console.log(positions[i]);
+            var marker=new google.maps.Marker({
+                position:positions[i],
+                map:map,
+                icon:'data:image/png;base64,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'
+            });
+        }
+
+
+        // marker.setMap(map);
+    }
+
+    function _initialize(_position)
+    {
+
+        var mapProp = {
+            center:new google.maps.LatLng(48.13743, 11.57549),
+            zoom:12,
+            mapTypeId:google.maps.MapTypeId.ROADMAP
+        };
+        var map=new google.maps.Map(document.getElementById("googleMap"),mapProp);
+        for(let google_pos of positions) {
+            if(selectedPosition.lat() == google_pos.lat() && google_pos.lng() == selectedPosition.lng()) {
+                let index = positions.indexOf(google_pos);
+                // console.log(index)
+                positions.splice(index,1);
+                deletedPostion = google_pos;
+            }
+        }
+
+        for(let i = 0 ; i < positions.length; i++) {
+            console.log(positions[i]);
+            var marker=new google.maps.Marker({
+                position:positions[i],
+                map:map,
+                icon:'data:image/png;base64,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'
+            });
+        }
+
+        var marker=new google.maps.Marker({
+            position:selectedPosition,
+            map:map
+        });
+
+
+        positions.push(deletedPostion);
+        // marker.setMap(map);
+    }
+
+
+    // document.getElementById("Knotennummer").value;
+    // var Knotennummer= prompt('Knotennummer:');
+    //���ȼ���input��ı䶯��ѡ��һ���µ��ļ��ᴥ��change�¼�
+    document.querySelector("#file").addEventListener("change", function () {
+        //��ȡ��ѡ�е��ļ�
+        // console.log(new google.maps.LatLng(48.13743, 11.57549));
+        var file = document.querySelector("#file").files[0];
+        var type = file.name.split('.');
+        if (type[type.length - 1] !== 'xlsx' && type[type.length - 1] !== 'xls') {
+            alert('ֻ��ѡ��excel�ļ�����');
+            return false;
+        }
+        const reader = new FileReader();
+        var target_Knote = {
+            Knotennummer:undefined,
+            Dx:undefined,
+            Dy:undefined
+        };
+        reader.readAsBinaryString(file);
+        reader.onload = (e) => {
+            const data = e.target.result;
+            const zzexcel = window.XLS.read(data, {
+                type: 'binary'
+            });
+
+            for (let i = 0; i < zzexcel.SheetNames.length; i++) {
+                const data = window.XLS.utils.sheet_to_json(zzexcel.Sheets[zzexcel.SheetNames[i]]);
+                sheetArray.push(...data)
+            }
+
+            // console.log('result', result)
+
+
+            for (let i = 1; i <= sheetArray.length -1; i++) {
+                let _button = document.createElement('button');
+                _button.innerHTML = sheetArray[i].Knotennummer;
+                _button.style.width = "80px";
+                _button.style.height = "25px";
+
+                let div_knoten_list = document.querySelector("#knotennummer_list");
+                div_knoten_list.appendChild(_button);
+                positions.push(new google.maps.LatLng(sheetArray[i].Dx,sheetArray[i].Dy));
+
+                _button.addEventListener('click',function(event) {
+
+
+                  //  _button.setAttribute("style","color:red;");
+                    let _kn = event.target.innerHTML;
+                    console.log(_kn);
+                    let _dx = sheetArray[i].Dx;
+                    let _dy = sheetArray[i].Dy;
+
+
+                    myCenter=new google.maps.LatLng(_dx,_dy);
+                    // initialize();
+                    selectedPosition = myCenter;
+                    _initialize();
+
+                    selectedPosition = undefined;
+
+                }) ;
+
+                _button.addEventListener('click',function(event) {
+                    if(temp != _button && temp==null){
+
+                        temp=_button;
+                        _button.style.color="red";
+                    }  else if(temp !=_button &&temp!=null){
+
+                        temp.style.color="green";
+                        _button.style.color="red";
+                        temp=_button;
+                    }
+
+                    })
+
+            }
+            initialize();
+        }
+    });
+</script>
+
+
+
+</body>
+
+
+
+
+</html>

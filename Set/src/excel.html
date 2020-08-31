@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Hochladen</title>
+    <script type="text/javascript" src='https://cdn.jsdelivr.net/npm/xlsx@0.16.6/dist/xlsx.full.min.js'></script>
+    <script
+            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDJW4jsPlNKgv6jFm3B5Edp5ywgdqLWdmc&sensor=false">
+    </script>
+
+</head>
+
+<body>
+文件：<br>
+<input type="file" id="file"/><br>
+
+<input type="text" id="Knotennummer"/>
+<button type="button" onclick="stimmt()"> stimmt </button>
+
+<div id="googleMap" style="width:1000px;height:760px;"></div>
+
+    <script>
+
+        var myCenter;
+        const sheetArray = [];
+        function stimmt(){
+        var stimmt = document.getElementById("Knotennummer").value;
+        console.log(stimmt)
+
+            for (let i = 1; i <= sheetArray.length -1; i++) {
+                // console.log(Knotennummer)
+                // console.log(result[i].Knotennummer)
+                if(stimmt == sheetArray[i].Knotennummer) {
+                    target_Knote = sheetArray[i];
+                    console.log(target_Knote.Dx);
+                    console.log(target_Knote.Dy);
+                }
+            }
+            myCenter=new google.maps.LatLng(target_Knote.Dx,target_Knote.Dy);
+            // google.maps.event.addDomListener(window, 'load', initialize);
+            initialize();
+        }
+
+
+        function initialize()
+        {
+            var mapProp = {
+                center:myCenter,
+                zoom:12,
+                mapTypeId:google.maps.MapTypeId.ROADMAP
+            };
+            var map=new google.maps.Map(document.getElementById("googleMap"),mapProp);
+
+            var marker=new google.maps.Marker({
+                position:myCenter,
+            });
+
+            marker.setMap(map);
+        }
+
+
+
+        // document.getElementById("Knotennummer").value;
+        // var Knotennummer= prompt('Knotennummer:');
+        //首先监听input框的变动，选中一个新的文件会触发change事件
+        document.querySelector("#file").addEventListener("change", function () {
+            //获取到选中的文件
+            var file = document.querySelector("#file").files[0];
+            var type = file.name.split('.');
+            if (type[type.length - 1] !== 'xlsx' && type[type.length - 1] !== 'xls') {
+                alert('只能选择excel文件导入');
+                return false;
+            }
+            const reader = new FileReader();
+            var target_Knote = {
+                Dx:undefined,
+                Dy:undefined
+            };
+            reader.readAsBinaryString(file);
+            reader.onload = (e) => {
+                const data = e.target.result;
+                const zzexcel = window.XLS.read(data, {
+                    type: 'binary'
+                });
+
+                for (let i = 0; i < zzexcel.SheetNames.length; i++) {
+                    const data = window.XLS.utils.sheet_to_json(zzexcel.Sheets[zzexcel.SheetNames[i]]);
+                    sheetArray.push(...data)
+                }
+
+                // console.log('result', result)
+            }
+        });
+    </script>
+
+
+
+</body>
+
+
+
+
+</html>
